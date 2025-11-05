@@ -10,6 +10,10 @@ except Exception:
 
 def _telemetry_loop(self, period_s: float):
     """Función periódica: lee telemetría y sincroniza la pose (z/yaw) si está disponible."""
+    # NUEVO: marca para fijar referencia de yaw al inicio de cada vuelo
+    if not hasattr(self, "_pose_takeoff_synced"):
+        self._pose_takeoff_synced = False
+
     while not getattr(self, "_telemetry_stop", True):
 
         # Si no hay conexión, esperamos y reintentamos
@@ -96,11 +100,27 @@ def _telemetry_loop(self, period_s: float):
                     self.pose = PoseVirtual()
 
             if hasattr(self, "pose") and self.pose is not None:
-                # Solo pasamos valores válidos (None se ignora dentro del método)
-                self.pose.set_from_telemetry(
-                    height_cm=height_val,
-                    yaw_deg=yaw_val
-                )
+                # Altura (z)
+                self.pose.set_from_telemetry(height_cm=height_val)
+
+                # Yaw absoluto -> relativo (si lo tenemos)
+                if yaw_val is not None:
+                    try:
+                        self.pose.set_heading_from_absolute_yaw(yaw_val)
+                    except Exception:
+                        pass
+
+                # Al pasar a estado 'flying' por primera vez, fijamos referencia de yaw del vuelo
+                try:
+                    if getattr(self, "state", "") == "flying":
+                        if yaw_val is not None and not getattr(self, "_pose_takeoff_synced", False):
+                            self.pose.set_takeoff_reference(yaw_val)
+                            self._pose_takeoff_synced = True
+                    else:
+                        # cuando no estamos volando, reseteamos la marca para el siguiente vuelo
+                        self._pose_takeoff_synced = False
+                except Exception:
+                    pass
         except Exception:
             # Nunca dejes caer el hilo de telemetría por fallos de pose
             pass

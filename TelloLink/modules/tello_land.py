@@ -10,6 +10,25 @@ import threading
 import time
 
 
+def _read_height_cm_runtime(self) -> float:
+    """
+    Lectura robusta de altura para aterrizaje:
+    1) Intenta SDK (get_height).
+    2) Si falla, cae a self.height_cm.
+    """
+    try:
+        if hasattr(self, "_tello") and self._tello:
+            h = self._tello.get_height()
+            if h is not None:
+                return float(max(0, int(h)))
+    except Exception:
+        pass
+    try:
+        return float(max(0, int(getattr(self, "height_cm", 0) or 0)))
+    except Exception:
+        return 0.0
+
+
 # --- API público: Land ---
 def Land(self, blocking=True, callback=None, params=None):
     """
@@ -74,15 +93,8 @@ def _land(self, callback=None, params=None):
         except Exception:
             pass
 
-        # Lectores de altura seguros
-        def _read_height_cm():
-            try:
-                return float(getattr(self, "height_cm", 0) or 0)
-            except Exception:
-                return 0.0
-
         # Paso 2) Si ya está a ras de suelo, no fuerces 'land'
-        h0 = _read_height_cm()
+        h0 = _read_height_cm_runtime(self)
         if h0 <= 20.0:
             print("[land] Altura inicial ≤ 20 cm. Ya está en el suelo; no mando 'land'.")
             _normalize_after_land(self)
@@ -102,7 +114,7 @@ def _land(self, callback=None, params=None):
         LOW_CM    = 15.0      # umbral “en suelo”
         t0 = time.time()
         while time.time() - t0 < TIMEOUT_S:
-            h = _read_height_cm()
+            h = _read_height_cm_runtime(self)
             if h <= LOW_CM:
                 break
             time.sleep(0.2)

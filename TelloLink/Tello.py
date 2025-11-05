@@ -63,11 +63,12 @@ class TelloDron(object):
     from TelloLink.modules.tello_takeOff import takeOff, _takeOff, _checkAltitudeReached, _ascend_to_target
     from TelloLink.modules.tello_land import Land, _land
     from TelloLink.modules.tello_telemetry import startTelemetry, stopTelemetry
-    from TelloLink.modules.tello_move import _move, up, down, set_speed, forward, back, left, right  # ← fusionado limpio
+    from TelloLink.modules.tello_move import _move, up, down, set_speed, forward, back, left, right, rc
     from TelloLink.modules.tello_heading import rotate, cw, ccw
     from TelloLink.modules.tello_video import start_video, stop_video, show_video_blocking
     from TelloLink.modules.tello_pose import PoseVirtual
     from TelloLink.modules.tello_goto import goto_rel, abort_goto
     from TelloLink.modules.tello_mission import run_mission, abort_mission
-    from TelloLink.modules.tello_geofence import set_geofence, disable_geofence, add_exclusion_poly, add_exclusion_rect, \
-        add_exclusion_circle, get_exclusions, clear_exclusions, check_position_allowed
+    from TelloLink.modules.tello_geofence import set_geofence, disable_geofence, recenter_geofence, add_exclusion_poly, add_exclusion_circle, clear_exclusions
+    from TelloLink.modules.tello_camera import stream_on, stream_off, get_frame, snapshot
+    from TelloLink.modules.tello_video import start_video, stop_video, show_video_blocking

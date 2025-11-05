@@ -19,8 +19,8 @@ def main():
         return
 
     #Por seguridad, establecemos un "volumen cúbico de seguridad", es decir máximo 120 cm en Z (altura) y 120 en X e Y (horizontal)
-    MAX_RADIUS_CM = 120
-    MAX_HEIGHT_CM = 120
+    MAX_RADIUS_CM = 200
+    MAX_HEIGHT_CM = 200
     def soft_guard():
         try:
             if hasattr(dron, "pose") and dron.pose: #si existe pose y no es None
@@ -59,7 +59,7 @@ def main():
             break
         print(f"\n--> {desc}")
         start_t = time.time()
-        dron.goto_rel(dx_cm=dx, dy_cm=dy, dz_cm=dz, blocking=False)
+        dron.goto_rel(dx_cm=dx, dy_cm=dy, dz_cm=dz, blocking=True)
         while time.time() - start_t < 8.0:  #timeout de seguridad
             if soft_guard():
                 break

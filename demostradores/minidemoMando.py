@@ -1,4 +1,4 @@
-#Silencia todos los popups de messagebox (info/warning/error)
+ #Silencia todos los popups de messagebox (info/warning/error)
 def _silence_all_popups():
     try:
         import tkinter.messagebox as _mb

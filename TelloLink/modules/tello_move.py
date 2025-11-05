@@ -7,10 +7,18 @@ MIN_SPEED = 10      # cm/s
 MAX_SPEED = 100     # cm/s
 COOLDOWN_S = 0.4    # pequeña pausa entre comandos por seguridad
 
+
+
+def _resp_is_ok(resp):
+    s = str(resp).strip().lower()
+    # Acepta 'ok' y también respuestas no vacías que NO contengan 'error'
+    return s == "ok" or (s and "error" not in s)
+
+
 def _ensure_techo(self):
     # Techo de seguridad por defecto: 1.5 m si no está definido
     if not hasattr(self, "TECHO_M") or self.TECHO_M is None: #Si el atributo TECHO_ no existe o está definido como none, le popnemos 1,5 m.
-        self.TECHO_M = 1.5
+        self.TECHO_M = 2.5
 
 def _distancia_acotada(dist_cm: int) -> int:
     # Acota la distancia a los límites del SDK
@@ -25,7 +33,7 @@ def _move(self, verb, dist_cm):
     self._require_connected()
     d = _distancia_acotada(dist_cm)
     resp = self._send(f"{verb} {d}") #Se envia el tipo de verb y su distancia, por ejemplo forward y 50)
-    if str(resp).lower() != "ok":   #Si el dron no responde con un "ok", lanzamos ek error
+    if not _resp_is_ok(resp):   #Si el dron no responde con un "ok", lanzamos ek error
         raise RuntimeError(f"{verb} {d} -> {resp}")
     #POSE (añadido mínimo): actualizar pose tras OK ---
     try:
@@ -73,7 +81,7 @@ def up(self, dist_cm: int):
         return True
 
     resp = self._send(f"up {d}") #Se manda el comando al Tello
-    if str(resp).lower() != "ok": #Si no devuelve "ok"
+    if not _resp_is_ok(resp): #Si no devuelve "ok"
         raise RuntimeError(f"up {d} -> {resp}") #Lanza error
     # --- POSE (añadido mínimo): actualizar pose tras OK ---
     try:
@@ -95,7 +103,7 @@ def down(self, dist_cm: int): #Función para bajar
         if d > curr_h: #Si la altura que se desea bajar es mayor que la altura actual (imposible)
             d = max(MIN_STEP, curr_h)  #Va a bajar  la altura actual o lo que pueda (MIN_STEP)
     resp = self._send(f"down {d}") #Se manda el comando al Tello
-    if str(resp).lower() != "ok": #Si no devuelve "ok"
+    if not _resp_is_ok(resp): #Si no devuelve "ok"
         raise RuntimeError(f"down {d} -> {resp}") #Lanza error
     # --- POSE (añadido mínimo): actualizar pose tras OK ---
     try:
@@ -122,3 +130,40 @@ def set_speed(self, speed_cm_s: int): #En vez de trabajar siempre con la velocid
 
     time.sleep(COOLDOWN_S)
     return True
+
+
+def rc(self, vx: int, vy: int, vz: int, yaw: int):
+    """
+    Control RC continuo para joystick (velocidades -100 a +100).
+
+    Args:
+        vx: adelante(+)/atrás(-) en cm/s
+        vy: derecha(+)/izquierda(-) en cm/s
+        vz: arriba(+)/abajo(-) en cm/s
+        yaw: horario(+)/antihorario(-) en grados/s
+
+    Returns:
+        bool: True si el comando se envió correctamente
+
+    Ejemplo:
+        # Mover adelante a 50% velocidad, sin otras componentes
+        dron.rc(50, 0, 0, 0)
+
+        # Detener completamente
+        dron.rc(0, 0, 0, 0)
+    """
+    # Limitar valores al rango válido del SDK Tello
+    vx = max(-100, min(100, int(vx)))
+    vy = max(-100, min(100, int(vy)))
+    vz = max(-100, min(100, int(vz)))
+    yaw = max(-100, min(100, int(yaw)))
+
+    # Construir comando RC del SDK Tello
+    cmd = f"rc {vx} {vy} {vz} {yaw}"
+
+    try:
+        self._send(cmd)
+        return True
+    except Exception as e:
+        print(f"[rc] Error enviando comando: {e}")
+        return False

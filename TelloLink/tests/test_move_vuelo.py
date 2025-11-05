@@ -12,7 +12,7 @@ def main():
     time.sleep(1)
 
 
-    dron.TECHO_M = 1.2
+    dron.TECHO_M = 2
 
     #Por seguridad, operamos con un mínimo de 20% de batería
     bat = dron.battery_pct if dron.battery_pct is not None else 100
