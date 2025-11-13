@@ -9,8 +9,7 @@ except Exception:
 
 
 def _telemetry_loop(self, period_s: float):
-    """Función periódica: lee telemetría y sincroniza la pose (z/yaw) si está disponible."""
-    # NUEVO: marca para fijar referencia de yaw al inicio de cada vuelo
+
     if not hasattr(self, "_pose_takeoff_synced"):
         self._pose_takeoff_synced = False
 
@@ -25,7 +24,7 @@ def _telemetry_loop(self, period_s: float):
         height_val = None
         yaw_val = None
 
-        # -------- Altura (cm) --------
+        # Altura (cm)
         try:
             h = self._tello.get_height()
             if h is not None:
@@ -34,33 +33,33 @@ def _telemetry_loop(self, period_s: float):
         except Exception:
             pass
 
-        # -------- Yaw (grados) --------
+        #Yaw (grados)
         try:
-            # Primero intentamos get_yaw() si la librería lo expone
+            # Primero intentamos get_yaw()
             gy = getattr(self._tello, "get_yaw", None)
             if callable(gy):
                 y = gy()
             else:
-                # Alternativa: leer del estado crudo si existe
+                # Alternativa: leer del estado  si existe
                 y = None
                 gc = getattr(self._tello, "get_current_state", None)
                 if callable(gc):
                     try:
                         st = gc()
-                        # djitellopy suele exponer 'yaw' en grados
+                        # djitellopy suele mostrar 'yaw' en grados
                         if isinstance(st, dict):
                             y = st.get("yaw", None)
                     except Exception:
                         y = None
 
             if y is not None:
-                # Algunos firmwares devuelven strings; convertimos con seguridad
+
                 self.yaw_deg = float(y)
                 yaw_val = self.yaw_deg
         except Exception:
             pass
 
-        # -------- Batería (%) --------
+        # Batería (%)
         try:
             b = self._tello.get_battery()
             if b is not None:
@@ -68,7 +67,7 @@ def _telemetry_loop(self, period_s: float):
         except Exception:
             pass
 
-        # -------- Temperatura (°C) --------
+        #Temperatura (°C)
         try:
             t = self._tello.get_temperature()
             if t is not None:
@@ -76,7 +75,7 @@ def _telemetry_loop(self, period_s: float):
         except Exception:
             pass
 
-        # -------- WiFi (0..100 aprox) --------
+        # WiFi (0..100 aprox)
         try:
             w = self._tello.get_wifi()
             if w is not None:
@@ -84,7 +83,7 @@ def _telemetry_loop(self, period_s: float):
         except Exception:
             pass
 
-        # -------- Tiempo de vuelo (s) --------
+        #  Tiempo de vuelo (s)
         try:
             ft = self._tello.get_flight_time()
             if ft is not None:
@@ -92,9 +91,9 @@ def _telemetry_loop(self, period_s: float):
         except Exception:
             pass
 
-        # -------- Sincronización de PoseVirtual (z/yaw) --------
+        #  Sincronización de PoseVirtual (z/yaw)
         try:
-            # Si aún no existe pose, la creamos (opcional: quita esto si prefieres instanciarla fuera)
+            # Si aún no existe pose, la creamos
             if not hasattr(self, "pose") or self.pose is None:
                 if PoseVirtual is not None:
                     self.pose = PoseVirtual()
@@ -103,7 +102,7 @@ def _telemetry_loop(self, period_s: float):
                 # Altura (z)
                 self.pose.set_from_telemetry(height_cm=height_val)
 
-                # Yaw absoluto -> relativo (si lo tenemos)
+                # Yaw absoluto -> relativo
                 if yaw_val is not None:
                     try:
                         self.pose.set_heading_from_absolute_yaw(yaw_val)
@@ -122,20 +121,17 @@ def _telemetry_loop(self, period_s: float):
                 except Exception:
                     pass
         except Exception:
-            # Nunca dejes caer el hilo de telemetría por fallos de pose
+
             pass
 
-        # Timestamp de última lectura (útil para watchdogs)
+
         self.telemetry_ts = time.time()
 
         time.sleep(period_s)
 
 
 def startTelemetry(self, freq_hz: int = 5):
-    """
-    Arranca la telemetría periódica (por defecto 5 Hz).
-    Devuelve False si ya hay un hilo activo.
-    """
+
     if freq_hz <= 0:
         freq_hz = 5
 
@@ -150,7 +146,7 @@ def startTelemetry(self, freq_hz: int = 5):
     self.flight_time_s = getattr(self, "flight_time_s", 0)
     self.telemetry_ts = time.time()
 
-    # Si quieres garantizar pose desde el inicio, la creamos aquí también
+    # Creamos aquí la pose
     if not hasattr(self, "pose") or self.pose is None:
         if PoseVirtual is not None:
             self.pose = PoseVirtual()
@@ -165,7 +161,7 @@ def startTelemetry(self, freq_hz: int = 5):
 
 
 def stopTelemetry(self):
-    """Detiene la telemetría si está activa."""
+
     self._telemetry_stop = True
     th = getattr(self, "_telemetry_thread", None)
     if th and th.is_alive():

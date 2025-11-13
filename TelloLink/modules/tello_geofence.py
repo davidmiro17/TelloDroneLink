@@ -4,7 +4,7 @@ import threading
 import time
 from typing import List, Tuple, Optional, Dict, Any
 
-# --- Configuración general ---
+# Configuración general ---
 _DEFAULT_MAX_X_CM = 150.0
 _DEFAULT_MAX_Y_CM = 150.0
 _DEFAULT_MAX_Z_CM = 120.0
@@ -14,9 +14,9 @@ _MODE_SOFT_ABORT = "soft"
 _MODE_HARD_LAND = "hard"
 
 
-# --- Funciones geométricas ---
+#Funciones geométricas
 def _point_in_poly(x: float, y: float, poly: List[Tuple[float, float]], eps=1e-6) -> bool:
-    """Ray casting con tolerancia; el borde cuenta como dentro."""
+
     n = len(poly)
     if n < 3:
         return False
@@ -67,15 +67,7 @@ def set_geofence(self,
                  z_min_cm=0.0,
                  mode=_MODE_SOFT_ABORT,
                  poll_interval_s=_DEFAULT_POLL_S):
-    """
-    Activa/actualiza el geofence y (re)lanza su hilo de supervisión.
 
-    IMPORTANTE: max_x_cm y max_y_cm son el ANCHO TOTAL del rectángulo de inclusión,
-    NO semiejes. Se dividen por 2 internamente para la validación.
-
-    NOTA: si max_x_cm<=0 o max_y_cm<=0 se interpretará como
-    'sin rectángulo de inclusión' y el monitor vigilará SOLO exclusiones.
-    """
     # Normaliza límites (0 o negativo = sin inclusión)
     lim: Dict[str, float] = {}
     if max_x_cm and max_x_cm > 0:
@@ -85,7 +77,7 @@ def set_geofence(self,
     if max_z_cm and max_z_cm > 0:
         lim["max_z"] = float(max_z_cm)
 
-    # ✅ Soporte para z_min
+    #  Soporte para z_min
     lim["zmin"] = float(z_min_cm) if z_min_cm is not None else 0.0
 
     self._gf_limits = lim if lim else None
@@ -134,12 +126,7 @@ def recenter_geofence(self):
 
 
 def add_exclusion_circle(self, cx, cy, r_cm, z_min_cm=None, z_max_cm=None):
-    """
-    Añade un círculo de exclusión con altura opcional [z_min,z_max].
-    Si z_min_cm o z_max_cm es None, se interpreta como 'todas las alturas'.
 
-    ✅ Siempre guarda como dict para consistencia.
-    """
     if not hasattr(self, "_gf_excl_circles"):
         self._gf_excl_circles = []
 
@@ -166,11 +153,7 @@ def add_exclusion_circle(self, cx, cy, r_cm, z_min_cm=None, z_max_cm=None):
 
 
 def add_exclusion_poly(self, points, z_min_cm=None, z_max_cm=None):
-    """
-    Añade un polígono de exclusión con altura opcional [z_min,z_max].
 
-    ✅ Siempre guarda como dict para consistencia.
-    """
     if not hasattr(self, "_gf_excl_polys"):
         self._gf_excl_polys = []
 
@@ -249,7 +232,7 @@ def _gf_monitor_loop(self):
             y = float(getattr(pose, "y_cm", 0.0) or 0.0)
             z = float(getattr(pose, "z_cm", getattr(self, "height_cm", 0.0)) or 0.0)
 
-            # ✅ Validación completa
+            #  Validación completa
             violated = (not _inside_inclusion(self, x, y, z)) or _inside_any_exclusion(self, x, y, z)
 
             if violated:
@@ -278,7 +261,7 @@ def _inside_inclusion(self, x, y, z):
     """
     Devuelve True si (x,y,z) está dentro de la inclusión; si no hay inclusión, devuelve True.
 
-    ✅ CORREGIDO: max_x y max_y son anchos TOTALES, se dividen por 2 para obtener semiejes.
+     CORREGIDO: max_x y max_y son anchos TOTALES, se dividen por 2 para obtener semiejes.
     """
     lim = getattr(self, "_gf_limits", None)
     if not lim:
@@ -290,7 +273,7 @@ def _inside_inclusion(self, x, y, z):
     max_z = float(lim.get("max_z", 0.0) or 0.0)
     zmin = float(lim.get("zmin", 0.0) or 0.0)
 
-    # ✅ FIX CRÍTICO: max_x/max_y son ANCHOS TOTALES del rectángulo, no semiejes
+    #  FIX CRÍTICO: max_x/max_y son ANCHOS TOTALES del rectángulo, no semiejes
     # Dividimos por 2 para obtener la distancia máxima desde el centro
     half_x = max_x / 2.0
     half_y = max_y / 2.0
@@ -307,7 +290,7 @@ def _inside_any_exclusion(self, x, y, z):
     """
     Verifica si (x,y,z) está dentro de alguna zona de exclusión.
 
-    ✅ CORREGIDO: maneja exclusivamente dicts y valida rangos Z correctamente.
+     CORREGIDO: maneja exclusivamente dicts y valida rangos Z correctamente.
     """
     # Polígonos: deben ser dicts {poly, zmin, zmax}
     for entry in list(getattr(self, "_gf_excl_polys", [])):
@@ -319,10 +302,10 @@ def _inside_any_exclusion(self, x, y, z):
         zmax = entry.get("zmax")
 
         if _point_in_poly(x, y, poly):
-            # ✅ Validación de altura Z
+            #  Validación de altura Z
             z_ok = (zmin is None or z >= zmin) and (zmax is None or z <= zmax)
             if z_ok:
-                print(f"[geofence] ❌ VIOLACIÓN POLY @ ({x:.1f},{y:.1f},{z:.1f})")
+                print(f"[geofence]  VIOLACIÓN POLY @ ({x:.1f},{y:.1f},{z:.1f})")
                 return True
 
     # Círculos: deben ser dicts {cx, cy, r, zmin, zmax}
@@ -337,10 +320,10 @@ def _inside_any_exclusion(self, x, y, z):
         zmax = entry.get("zmax")
 
         if _point_in_circle(x, y, cx_c, cy_c, r):
-            # ✅ Validación de altura Z
+            #  Validación de altura Z
             z_ok = (zmin is None or z >= zmin) and (zmax is None or z <= zmax)
             if z_ok:
-                print(f"[geofence] ❌ VIOLACIÓN CIRCLE @ ({x:.1f},{y:.1f},{z:.1f})")
+                print(f"[geofence]  VIOLACIÓN CIRCLE @ ({x:.1f},{y:.1f},{z:.1f})")
                 return True
 
     return False
@@ -352,7 +335,7 @@ def _handle_violation(self):
 
     # Evita reentradas
     if getattr(self, "_gf_last_report", None) != mode:
-        print(f"[geofence] ⚠️ Violación detectada (modo={mode}).")
+        print(f"[geofence]  Violación detectada (modo={mode}).")
         self._gf_last_report = mode
 
     # Señales de abortar tareas de alto nivel
@@ -370,7 +353,7 @@ def _handle_violation(self):
         if st not in ("flying", "hovering", "takingoff"):
             return
 
-        print("[geofence] 🚨 Aterrizando de emergencia…")
+        print("[geofence]  Aterrizando de emergencia…")
         # Dejamos de monitorear para no entrar en bucles
         self._gf_monitoring = False
 

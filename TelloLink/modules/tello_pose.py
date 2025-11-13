@@ -14,7 +14,7 @@ class PoseVirtual:
     z_cm: float = 0.0
     yaw_deg: float = 0.0
 
-    # --- NUEVO: referencia de yaw en el momento del despegue (para yaw relativo = 0) ---
+    # Referencia de yaw en el momento del despegue (para yaw relativo = 0) ---
     yaw0_deg: float = 0.0
 
     #Métodos básicos
@@ -24,7 +24,7 @@ class PoseVirtual:
         self.y_cm = 0.0
         self.z_cm = 0.0
         self.yaw_deg = 0.0
-        # También reseteamos la referencia (si quieres mantenerla, comenta la línea siguiente)
+        # También reseteamos la referencia
         self.yaw0_deg = 0.0
 
     def capture(self) -> dict:
@@ -36,7 +36,7 @@ class PoseVirtual:
             "yaw_deg": round(self.yaw_deg, 1),
         }
 
-    # --- NUEVO: llamar cuando completes el despegue para fijar el marco local del vuelo ---
+    #Llama cuando completa el despegue para fijar la referencia  del vuelo
     # Deja X=Y=0 en el punto de despegue, Z=altura actual y yaw relativo = 0
     def set_takeoff_reference(self, height_cm: float | None = None,
                               yaw_deg: float | None = None) -> None:
@@ -46,10 +46,10 @@ class PoseVirtual:
             self.z_cm = float(height_cm) if height_cm is not None else 0.0
         except Exception:
             self.z_cm = 0.0
-        # guarda yaw absoluto en el momento de despegar como referencia
+
         if yaw_deg is not None:
             self.yaw0_deg = _wrap_deg(float(yaw_deg))
-        # y a partir de aquí trabajamos con yaw relativo (0 en el takeoff)
+
         self.yaw_deg = 0.0
 
     def set_from_telemetry(self, height_cm: float | None = None,
@@ -61,7 +61,7 @@ class PoseVirtual:
             self.set_heading_from_absolute_yaw(float(yaw_deg))
 
     def update_yaw(self, delta_deg: float) -> None:
-        # delta relativo (cw positivo) sobre el yaw relativo actual
+        # Delta relativo (cw positivo) sobre el yaw relativo actual
         self.yaw_deg = _wrap_deg(self.yaw_deg + float(delta_deg))
 
     def update_move(self, direction: str, dist_cm: float) -> None:
@@ -98,7 +98,7 @@ class PoseVirtual:
         return math.sqrt(dx*dx + dy*dy + dz*dz)
 
     def set_takeoff_reference(self, yaw_abs_deg: float | None):
-        """Fija el yaw absoluto como referencia (0° relativo) para este vuelo."""
+
         if yaw_abs_deg is None:
             self.yaw0_deg = 0.0
         else:
@@ -107,7 +107,7 @@ class PoseVirtual:
         self.yaw_deg = 0.0
 
     def set_heading_from_absolute_yaw(self, yaw_abs_deg: float):
-        """Actualiza el yaw relativo usando el yaw absoluto y la referencia del vuelo."""
+
         abs_norm = float(yaw_abs_deg) % 360.0
         zero = float(self.yaw0_deg or 0.0) % 360.0
         rel = (abs_norm - zero) % 360.0
@@ -121,16 +121,7 @@ class PoseVirtual:
                 f"z={self.z_cm:.1f}, yaw={self.yaw_deg:.1f})")
 
     def update_from_rc(self, vx_pct, vy_pct, vz_pct, yaw_pct, dt_sec=0.1):
-        """
-        Actualiza la pose estimada basándose en comandos RC continuos.
 
-        Args:
-            vx_pct: velocidad adelante/atrás (-100 a 100)
-            vy_pct: velocidad izquierda/derecha (-100 a 100)
-            vz_pct: velocidad arriba/abajo (-100 a 100)
-            yaw_pct: velocidad rotación (-100 a 100)
-            dt_sec: tiempo transcurrido desde última actualización (segundos)
-        """
         import math
 
         # Velocidad máxima del Tello (aproximada)
@@ -164,5 +155,3 @@ class PoseVirtual:
         self.z_cm += dz
         self.yaw_deg = (self.yaw_deg + dyaw) % 360.0
 
-        # Debug (opcional)
-        # print(f"[pose] RC update: dx={dx_global:.1f}, dy={dy_global:.1f}, dz={dz:.1f}, dyaw={dyaw:.1f}")
