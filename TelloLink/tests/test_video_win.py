@@ -1,5 +1,3 @@
-# tests/test_video_windows.py
-# Vídeo FPV con OpenCV puro (Windows). No usa PyAV ni get_frame_read.
 from TelloLink.Tello import TelloDron
 import cv2
 import time
@@ -103,7 +101,7 @@ def main():
         pass
 
     dron.disconnect()
-    print("✅ Test completado")
+    print(" Test completado")
 
 if __name__ == "__main__":
     main()

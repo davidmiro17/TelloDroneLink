@@ -6,7 +6,7 @@ def main():
 
     dron = TelloDron()
 
-    # Intentamos desconectar sin haber conectado antes. Como nuestra función está diseñada para ello, al desconectar sin haber conectado antes no dará error.
+    # Intentamos desconectar sin haber conectado antes. Como la función está diseñada para ello, al desconectar sin haber conectado antes no dará error.
     if dron.disconnect():
         print("Desconexión ejecutada (aunque no había conexión previa)")
         print("Estado actual:", dron.state)       # debería ser "disconnected"

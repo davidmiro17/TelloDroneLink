@@ -6,9 +6,12 @@ from typing import Any, Dict, List, Optional, Callable
 
 _MIN_BAT_PCT = 20  # batería mínima para ejecutar una misión
 
-def _is_abs_wp(wp: Dict[str, Any]) -> bool: # Si el waypoint no contiene todas las claves absolutas (x,y,z) ni todas las relativas (dx,dy,dz), se considera inválido y se lanza un error
-    if not all(k in wp for k in ("x", "y", "z")) and not all(k in wp for k in ("dx", "dy", "dz")):
+def _is_abs_wp(wp: Dict[str, Any]) -> bool:
+    has_abs = all(k in wp for k in ("x", "y", "z"))
+    has_rel = all(k in wp for k in ("dx", "dy", "dz"))
+    if not has_abs and not has_rel:
         raise ValueError("Waypoint incoherente: debe ser absoluto (x,y,z) o relativo (dx,dy,dz)")
+    return has_abs  # True si absoluto, False si relativo
 
 
 def _validate_and_normalize(waypoints: List[Dict[str, Any]]) -> List[Dict[str, Any]]: #Función que sirve para normalizar y preparar la lista de waypoints

@@ -9,7 +9,7 @@ import time
 
 def main():
     print("=" * 80)
-    print("TEST DEL MÓDULO JOYSTICK (sin dron)")
+    print("TEST DEL MÓDULO JOYSTICK (sin el dron)")
     print("=" * 80)
     print()
 

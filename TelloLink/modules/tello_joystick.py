@@ -12,7 +12,7 @@ class JoystickController:
                  axis_right_y: int = 4,
                  invert_left_y: bool = True,
                  invert_right_y: bool = True,
-                 deadzone: float = 0.1,  #Umbral donde valores pequeños del joystick se consideran 0 (debido a que los joysticks no devuelvene exactamente 0 al soltarlos)
+                 deadzone: float = 0.1,  #Umbral donde valores pequeños del joystick se consideran 0 (debido a que los joysticks no devuelven exactamente 0 al soltarlos)
                  expo: float = 1.5): #Curva para ajustar la sensibilidad del joystick (si fuese 1.0, es muy probable que los movimientos suaves fuesen bruscos)
 
         self.axis_left_x = axis_left_x

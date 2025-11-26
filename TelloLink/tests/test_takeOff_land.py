@@ -7,7 +7,7 @@ def main():
     dron = TelloDron()
     dron.connect()
 
-    print("\n--> Despegando a 1.2 m (capado a 1.5 m)...")
+    print("\n--> Despegando a 1.2 m ...")
     dron.takeOff(1.2, blocking=True)
 
     #Durante 5 segundos, cada 0,5 segundos se van a hacer lecturas de la altura

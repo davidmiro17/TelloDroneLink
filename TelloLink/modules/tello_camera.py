@@ -32,7 +32,7 @@ def stream_off(self):
             self._frame_reader = None
         self._tello.streamoff() #Se manda al Tello la orden de parar el streaming de vídeo
         time.sleep(0.1)
-    except Exception: #Si algo falla (no había un stream activo) se ignora
+    except Exception: #Si algo falla (no había  stream activo) se ignora
         pass
     return True
 

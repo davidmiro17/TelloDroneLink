@@ -8,12 +8,12 @@ def _connect(self, freq=5, callback=None, params=None):
         # Crea el objeto Tello y conecta
         self._tello = Tello()
 
-        # ✅ NUEVO: Aumentar timeout para comandos lentos
+        #  Aumentar timeout para comandos lentos
         self._tello.RESPONSE_TIMEOUT = 15
 
         self._tello.connect()
 
-        # Limpieza preventiva del stream
+        # Limpiamos el stream
         try:
             self._tello.streamoff()
         except Exception:
@@ -22,7 +22,7 @@ def _connect(self, freq=5, callback=None, params=None):
         # Estado del Tello pasa a ser conectado
         self.state = "connected"
 
-        # POSE: asegurar objeto y sincronizar Z con barómetro
+        # POSE: asegurar objeto y sincronizar Z (altura) con barómetro
         try:
             if not hasattr(self, "pose") or self.pose is None:
                 self.pose = self.PoseVirtual()
@@ -54,13 +54,13 @@ def connect(self, freq=5, blocking=True, callback=None, params=None):
 
 
 def disconnect(self):
-    # Parar telemetría si está activa
+    # Paramos la telemetría si está activa
     try:
         self.stopTelemetry()
     except Exception:
         pass
 
-    # Cierra conexión con el dron
+    # Cerramos la conexión con el dron
     try:
         if self._tello:
             try:
@@ -85,7 +85,7 @@ def _require_connected(self):
 def _send(self, cmd: str) -> str:
     _require_connected(self)
 
-    # djitellopy expone distintos nombres según versión
+    # djitellopy expone distintos nombres según la versión, con esto nos aseguramos de que funcione con versiones más antiguas
     if hasattr(self._tello, "send_read_command"):
         resp = self._tello.send_read_command(cmd)
         return str(resp)
@@ -100,4 +100,4 @@ def _send(self, cmd: str) -> str:
             return "ok" if res else "error"
         return str(res)
 
-    raise RuntimeError("El backend Tello no soporta envío textual en esta versión.")
+    raise RuntimeError("El backend Tello no soporta envío textual en la versión actual.")

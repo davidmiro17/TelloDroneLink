@@ -35,7 +35,7 @@ def _video_loop(self, window_name, resize):  #Esta función consiste en el bucle
             time.sleep(_LOOP_SLEEP) #Hace una pausa muy corta y vuelve al bucle
             continue
 
-        bgr = _convert_for_cv2(self, frame) #Convierte el frame RGB a BGR, para que no se vea azulado
+        bgr = _convert_for_cv2(self, frame) #Convierte el frame RGB a BGR, para que no se vea azul
         if resize: #Si se ha pedido un tamaño concreto de ventana, se redimensiona, si por algún motivo falla, se ignora y sigue
             w, h = resize
             try:

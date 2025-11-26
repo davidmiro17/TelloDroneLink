@@ -87,6 +87,11 @@ class MiniRemoteApp:
         self.z_var = tk.StringVar(value="Z: —")
         self.yaw_var = tk.StringVar(value="Yaw: —")
 
+        # VELOCIDADES
+        self.vx_var = tk.StringVar(value="Vx: —")
+        self.vy_var = tk.StringVar(value="Vy: —")
+        self.vz_var = tk.StringVar(value="Vz: —")
+
         # Geofence
         self.gf_max_x_var = tk.StringVar(value="0")
         self.gf_max_y_var = tk.StringVar(value="0")
@@ -258,15 +263,15 @@ class MiniRemoteApp:
         fpv_controls = tk.Frame(fpv_frame, bg="black")
         fpv_controls.pack(fill="x", padx=4, pady=(0, 4))
 
-        tk.Button(fpv_controls, text="▶ FPV", command=self.start_fpv, bg="#cde7cd", width=8).pack(side="left", padx=2)
-        tk.Button(fpv_controls, text="⏹", command=self.stop_fpv, width=4).pack(side="left", padx=2)
-        tk.Button(fpv_controls, text="📷", command=self.take_snapshot, width=4).pack(side="left", padx=2)
-        tk.Button(fpv_controls, text="🔴", command=self.toggle_recording, width=4).pack(side="left", padx=2)
+        tk.Button(fpv_controls, text="FPV", command=self.start_fpv, bg="#cde7cd", width=8).pack(side="left", padx=2)
+        tk.Button(fpv_controls, text="PAUSA", command=self.stop_fpv, width=4).pack(side="left", padx=2)
+        tk.Button(fpv_controls, text="FOTO", command=self.take_snapshot, width=4).pack(side="left", padx=2)
+        tk.Button(fpv_controls, text="GRABAR", command=self.toggle_recording, width=4).pack(side="left", padx=2)
 
         tk.Label(fpv_controls, textvariable=self._joy_label_var, fg="white", bg="black", font=("Arial", 8)).pack(
             side="right", padx=4)
 
-        # Geofence compacto
+        # Geofence
         gf = tk.Frame(self.root, bd=1, relief="groove")
         gf.pack(fill="x", **pad)
         tk.Label(gf, text="Geofence:").grid(row=0, column=0, sticky="e")
@@ -308,6 +313,19 @@ class MiniRemoteApp:
                                                                                                       padx=4, pady=2,
                                                                                                       sticky="w")
 
+        # VELOCIDADES
+        vel_panel = tk.Frame(self.root, bd=1, relief="groove")
+        vel_panel.pack(fill="x", **pad)
+        tk.Label(vel_panel, textvariable=self.vx_var, width=12, anchor="w", font=("Arial", 9)).grid(row=0, column=0,
+                                                                                                    padx=4, pady=2,
+                                                                                                    sticky="w")
+        tk.Label(vel_panel, textvariable=self.vy_var, width=12, anchor="w", font=("Arial", 9)).grid(row=0, column=1,
+                                                                                                    padx=4, pady=2,
+                                                                                                    sticky="w")
+        tk.Label(vel_panel, textvariable=self.vz_var, width=12, anchor="w", font=("Arial", 9)).grid(row=0, column=2,
+                                                                                                    padx=4, pady=2,
+                                                                                                    sticky="w")
+
     def _bind_keys(self):
         self.root.bind("<Up>", lambda e: self.do_move("forward"))
         self.root.bind("<Down>", lambda e: self.do_move("back"))
@@ -320,7 +338,7 @@ class MiniRemoteApp:
         self.root.bind("<Key-q>", lambda e: self.do_turn("ccw"))
         self.root.bind("<Key-e>", lambda e: self.do_turn("cw"))
 
-    # ===================== Conexión / Telemetría =====================
+    #  Conexión / Telemetría
     def on_connect(self):
         if self.dron.state == "connected":
             return
@@ -328,7 +346,7 @@ class MiniRemoteApp:
             self.dron.connect()
             self.state_var.set(self.dron.state)
             self._ensure_pose_origin()
-            self.dron.startTelemetry(freq_hz=5)
+            self.dron.startTelemetry(freq_hz=20)
             self._telemetry_running = True
             self._schedule_telemetry_pull()
             self._start_keepalive()
@@ -385,7 +403,7 @@ class MiniRemoteApp:
                     self._reapply_exclusions_to_backend()
                 except Exception:
                     pass
-                self._hud_show("✈️ Despegado", 1.5)
+                self._hud_show("Despegado", 1.5)
         except Exception as e:
             messagebox.showerror("TakeOff", str(e))
         finally:
@@ -478,7 +496,7 @@ class MiniRemoteApp:
         finally:
             self.root.after(150, self._resume_keepalive)
 
-    # ===================== KEEPALIVE =====================
+    #KEEPALIVE
     def _start_keepalive(self):
         if getattr(self, "_keepalive_running", False):
             return
@@ -515,7 +533,7 @@ class MiniRemoteApp:
     def _resume_keepalive(self):
         self._keepalive_paused = False
 
-    # ===================== TELEMETRÍA =====================
+    #TELEMETRÍA
     def _schedule_telemetry_pull(self):
         if not self._telemetry_running:
             return
@@ -559,6 +577,18 @@ class MiniRemoteApp:
                 self.y_var.set("Y: —")
                 self.z_var.set("Z: —")
                 self.yaw_var.set("Yaw: —")
+
+            # VELOCIDADES
+            vx = getattr(self.dron, "vx_cm_s", None)
+            vy = getattr(self.dron, "vy_cm_s", None)
+            vz = getattr(self.dron, "vz_cm_s", None)
+            self.vx_var.set(f"Vx: {vx} cm/s" if vx is not None else "Vx: —")
+            self.vy_var.set(f"Vy: {vy} cm/s" if vy is not None else "Vy: —")
+            self.vz_var.set(f"Vz: {vz} cm/s" if vz is not None else "Vz: —")
+            # DEBUG
+            if vx is None or vy is None or vz is None:
+                print(f"[DEBUG VELOCIDADES] vx={vx}, vy={vy}, vz={vz}")
+
             self._update_map_drone()
         except Exception as e:
             print(f"[telemetry] Error: {e}")
@@ -571,7 +601,7 @@ class MiniRemoteApp:
         except Exception:
             pass
 
-    # ===================== GEOFENCE =====================
+    #GEOFENCE
     def on_gf_activate(self):
         try:
             max_x = float(self.gf_max_x_var.get() or 0.0)
@@ -633,7 +663,7 @@ class MiniRemoteApp:
         except Exception:
             pass
 
-    # ===================== FPV =====================
+    #FPV
     def start_fpv(self):
         if self._fpv_running:
             return
@@ -656,7 +686,7 @@ class MiniRemoteApp:
         self._fpv_running = True
         self._fpv_thread = threading.Thread(target=self._fpv_loop, daemon=True)
         self._fpv_thread.start()
-        self._hud_show("▶️ FPV iniciado", 1.0)
+        self._hud_show("FPV iniciado", 1.0)
 
     def stop_fpv(self):
         self._fpv_running = False
@@ -679,7 +709,7 @@ class MiniRemoteApp:
             pass
         finally:
             self._cv_cap = None
-        self._hud_show("⏹️ FPV detenido", 1.0)
+        self._hud_show("FPV detenido", 1.0)
 
     def _read_frame_generic(self):
         try:
@@ -746,14 +776,14 @@ class MiniRemoteApp:
         with self._frame_lock:
             frame = None if self._last_bgr is None else self._last_bgr.copy()
         if frame is None:
-            self._hud_show("📷 Sin frame", 1.5)
+            self._hud_show(" Sin frame", 1.5)
             return
         path = os.path.join(self._shots_dir, f"shot_{_ts()}.png")
         try:
             cv2.imwrite(path, frame)
-            self._hud_show(f"📷 Guardada", 1.8)
+            self._hud_show(f"Guardada", 1.8)
         except Exception:
-            self._hud_show("📷 Error", 1.5)
+            self._hud_show("Error", 1.5)
 
     def toggle_recording(self):
         if self._rec_running:
@@ -770,7 +800,7 @@ class MiniRemoteApp:
         self._rec_path = os.path.join(self._recs_dir, f"rec_{_ts()}.mp4")
         self._rec_running = True
         self._rec_writer = None
-        self._hud_show("🔴 Grabando", 1.5)
+        self._hud_show("Grabando", 1.5)
 
     def _stop_recording(self):
         if self._rec_running:
@@ -781,7 +811,7 @@ class MiniRemoteApp:
             except Exception:
                 pass
             self._rec_writer = None
-            self._hud_show("⏹️ Guardado", 1.5)
+            self._hud_show("Guardado", 1.5)
 
     # ===================== JOYSTICK =====================
     def _init_joystick(self):
@@ -825,11 +855,19 @@ class MiniRemoteApp:
                 try:
                     vx, vy, vz, yaw = controller.read_axes()
 
+                    # Capturar valores para el closure
+                    _vx, _vy, _vz, _yaw = vx, vy, vz, yaw
+
                     def _send():
                         if self.dron.state == "flying":
                             try:
-                                self.dron.rc(int(vx), int(vy), int(vz), int(yaw))
+                                self.dron.rc(int(_vx), int(_vy), int(_vz), int(_yaw))
                                 self._last_rc_sent = time.time()
+
+                                # Dead Reckoning desde RC (no telemetría)
+                                # vy = forward/back, vx = left/right
+                                if hasattr(self.dron, "pose") and self.dron.pose:
+                                    self.dron.pose.update_from_rc(_vy, _vx, _vz, _yaw, dt_sec=0.05)
                             except Exception:
                                 pass
                     self.root.after(0, _send)
@@ -885,9 +923,9 @@ class MiniRemoteApp:
     def _stop_joystick(self):
         self._joy_running = False
 
-    # ===================== MAPA (INTEGRADO DEL DOCUMENTO 5) =====================
+    #MAPA
     def open_map_window(self):
-        """Abre la ventana del mapa con todas las funcionalidades."""
+
         if self._map_win and tk.Toplevel.winfo_exists(self._map_win):
             self._map_win.lift()
             return
@@ -906,7 +944,7 @@ class MiniRemoteApp:
         )
         self.map_canvas.pack(side="left", padx=10, pady=10)
 
-        # Panel lateral (herramientas)
+        # Panel lateral
         side_panel = tk.Frame(self._map_win, bd=1, relief="groove")
         side_panel.pack(side="right", fill="y", padx=10, pady=10)
 
@@ -940,7 +978,7 @@ class MiniRemoteApp:
         tk.Button(side_panel, text="Guardar plantilla", command=self._save_template).pack(pady=4)
         tk.Button(side_panel, text="Cargar plantilla", command=self._load_template).pack(pady=4)
 
-        # Bind clicks
+
         self.map_canvas.bind("<Button-1>", self._on_map_click)
 
         # Dibujar
@@ -950,7 +988,7 @@ class MiniRemoteApp:
         self._update_map_drone()
 
     def _redraw_map_static(self):
-        """Redibuja los elementos estáticos del mapa (grid, inclusión, exclusiones)."""
+
         if not self.map_canvas:
             return
 
@@ -1004,7 +1042,7 @@ class MiniRemoteApp:
                 self.map_canvas.create_polygon(canvas_pts, outline="#ff0000", fill="", width=2, tags="exclusion")
 
     def _update_map_drone(self):
-        """Actualiza la posición del dron en el mapa."""
+
         try:
             if not self._map_win or not self.map_canvas:
                 return
@@ -1065,7 +1103,7 @@ class MiniRemoteApp:
             self._map_win = None
 
     def _on_map_click(self, event):
-        """Maneja clics en el mapa para añadir exclusiones o definir inclusión."""
+
         if not self._tool_var:
             return
 
@@ -1080,7 +1118,7 @@ class MiniRemoteApp:
             self._add_inclusion_point(wx, wy)
 
     def _add_exclusion_circle(self, wx, wy):
-        """Añade un círculo de exclusión."""
+
         r = float(self._circle_radius_var.get() or 30.0)
         zmin = self._incl_zmin_var.get()
         zmax = self._incl_zmax_var.get()
@@ -1103,7 +1141,7 @@ class MiniRemoteApp:
         self._redraw_map_static()
 
     def _add_polygon_point(self, wx, wy):
-        """Añade un punto al polígono en construcción."""
+
         self._poly_points.append((wx, wy))
         cx_px, cy_px = self._world_to_canvas(wx, wy)
         self.map_canvas.create_oval(
@@ -1112,7 +1150,7 @@ class MiniRemoteApp:
         )
 
     def _close_polygon(self):
-        """Cierra el polígono en construcción."""
+
         if len(self._poly_points) < 3:
             messagebox.showwarning("Polígono", "Necesitas al menos 3 puntos.")
             return
@@ -1140,7 +1178,7 @@ class MiniRemoteApp:
         self._redraw_map_static()
 
     def _clear_exclusions(self):
-        """Limpia todas las exclusiones."""
+
         self._excl_circles.clear()
         self._excl_polys.clear()
         self._poly_points.clear()
@@ -1154,13 +1192,13 @@ class MiniRemoteApp:
         self._redraw_map_static()
 
     def _start_inclusion_rect(self):
-        """Inicia la definición del rectángulo de inclusión."""
+
         self._incl_pts.clear()
         self._tool_var.set("inclusion_rect")
         messagebox.showinfo("Inclusión", "Haz clic en dos esquinas opuestas del rectángulo.")
 
     def _add_inclusion_point(self, wx, wy):
-        """Añade un punto al rectángulo de inclusión."""
+
         self._incl_pts.append((wx, wy))
         if len(self._incl_pts) == 2:
             x1, y1 = self._incl_pts[0]
@@ -1182,7 +1220,7 @@ class MiniRemoteApp:
             self._redraw_map_static()
 
     def _sync_inclusion_to_gf(self):
-        """Sincroniza el rectángulo de inclusión con el geofence."""
+
         if not self._incl_rect:
             messagebox.showwarning("Inclusión", "Define primero el rectángulo.")
             return
@@ -1213,7 +1251,7 @@ class MiniRemoteApp:
         self._redraw_map_static()
 
     def _save_template(self):
-        """Guarda las exclusiones e inclusión en un archivo JSON."""
+
         path = filedialog.asksaveasfilename(defaultextension=".json", filetypes=[("JSON", "*.json")])
         if not path:
             return
@@ -1263,21 +1301,21 @@ class MiniRemoteApp:
             messagebox.showerror("Plantilla", f"Error cargando: {e}")
 
     def _world_to_canvas(self, wx, wy):
-        """Convierte coordenadas mundo (cm) a canvas (px)."""
+
         mid = MAP_SIZE_PX / 2.0
         cx = mid + (wy * PX_PER_CM)
         cy = mid - (wx * PX_PER_CM)
         return (cx, cy)
 
     def _canvas_to_world(self, cx, cy):
-        """Convierte coordenadas canvas (px) a mundo (cm)."""
+
         mid = MAP_SIZE_PX / 2.0
         wy = (cx - mid) / PX_PER_CM
         wx = (mid - cy) / PX_PER_CM
         return (wx, wy)
 
     def _draw_inclusion_rect(self, rect_tuple):
-        """Dibuja el rectángulo de inclusión en el mapa."""
+
         if self.map_canvas is None or not rect_tuple:
             return
 
@@ -1292,7 +1330,7 @@ class MiniRemoteApp:
         self.map_canvas.create_rectangle(p1x, p1y, p2x, p2y, outline="#8a2be2", width=3, tags=("inclusion",))
 
 
-# ===================== MAIN =====================
+#MAIN
 if __name__ == "__main__":
     root = tk.Tk()
     app = MiniRemoteApp(root)

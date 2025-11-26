@@ -4,7 +4,7 @@ import threading
 import time
 from typing import List, Tuple, Optional, Dict, Any
 
-# Configuración general ---
+# Configuración general.
 _DEFAULT_MAX_X_CM = 150.0
 _DEFAULT_MAX_Y_CM = 150.0
 _DEFAULT_MAX_Z_CM = 120.0
@@ -43,7 +43,7 @@ def _point_in_poly(x: float, y: float, poly: List[Tuple[float, float]], eps=1e-6
 
 
 def _point_on_segment(px, py, x1, y1, x2, y2, eps=1e-6):
-    """Comprueba si (px,py) está en el segmento [(x1,y1),(x2,y2)]"""
+
     cross = abs((px - x1) * (y2 - y1) - (py - y1) * (x2 - x1))
     if cross > eps:
         return False
@@ -89,16 +89,16 @@ def set_geofence(self,
         self._gf_center = (0.0, 0.0)
     self._gf_enabled = True
 
-    # Asegura contenedores (SIEMPRE como listas de dicts)
+
     if not hasattr(self, "_gf_excl_polys"):
         self._gf_excl_polys = []
     if not hasattr(self, "_gf_excl_circles"):
         self._gf_excl_circles = []
 
-    # Histéresis / rachas
+
     self._gf_violation_streak = 0
 
-    # (Re)inicia el monitor con seguridad
+    # Reinicia el monitor con seguridad
     _stop_geofence_monitor(self)
     _start_geofence_monitor(self)
 
@@ -115,7 +115,7 @@ def disable_geofence(self):
 
 
 def recenter_geofence(self):
-    """Reancla el centro del cubo al punto actual."""
+
     pose = getattr(self, "pose", None)
     if pose:
         self._gf_center = (float(getattr(pose, "x_cm", 0.0) or 0.0),
@@ -182,7 +182,7 @@ def clear_exclusions(self):
 
 
 def _start_geofence_monitor(self, force=False):
-    """Arranca el hilo del monitor si no está ya en marcha."""
+
     if getattr(self, "_gf_monitoring", False) and not force:
         return
     self._gf_monitoring = True
@@ -193,7 +193,7 @@ def _start_geofence_monitor(self, force=False):
 
 
 def _stop_geofence_monitor(self):
-    """Detiene el hilo del monitor si está activo."""
+
     self._gf_monitoring = False
     t = getattr(self, "_gf_thread", None)
     if t and isinstance(t, threading.Thread):
@@ -206,7 +206,7 @@ def _stop_geofence_monitor(self):
 
 
 def _ensure_gf_monitor(self):
-    """Garantiza que el monitor esté corriendo cuando _gf_enabled es True."""
+
     if getattr(self, "_gf_enabled", False) and not getattr(self, "_gf_monitoring", False):
         _start_geofence_monitor(self)
 
@@ -214,7 +214,7 @@ def _ensure_gf_monitor(self):
 # --- Funciones internas ---
 
 def _gf_monitor_loop(self):
-    """Bucle de supervisión del geofence (inclusión + exclusiones)."""
+
     self._gf_violation_streak = 0
     while getattr(self, "_gf_monitoring", False) and getattr(self, "_gf_enabled", False):
         try:
@@ -258,11 +258,7 @@ def _gf_monitor_loop(self):
 
 
 def _inside_inclusion(self, x, y, z):
-    """
-    Devuelve True si (x,y,z) está dentro de la inclusión; si no hay inclusión, devuelve True.
 
-     CORREGIDO: max_x y max_y son anchos TOTALES, se dividen por 2 para obtener semiejes.
-    """
     lim = getattr(self, "_gf_limits", None)
     if not lim:
         return True  # SOLO exclusiones
@@ -273,7 +269,7 @@ def _inside_inclusion(self, x, y, z):
     max_z = float(lim.get("max_z", 0.0) or 0.0)
     zmin = float(lim.get("zmin", 0.0) or 0.0)
 
-    #  FIX CRÍTICO: max_x/max_y son ANCHOS TOTALES del rectángulo, no semiejes
+
     # Dividimos por 2 para obtener la distancia máxima desde el centro
     half_x = max_x / 2.0
     half_y = max_y / 2.0
@@ -287,15 +283,11 @@ def _inside_inclusion(self, x, y, z):
 
 
 def _inside_any_exclusion(self, x, y, z):
-    """
-    Verifica si (x,y,z) está dentro de alguna zona de exclusión.
 
-     CORREGIDO: maneja exclusivamente dicts y valida rangos Z correctamente.
-    """
-    # Polígonos: deben ser dicts {poly, zmin, zmax}
+
     for entry in list(getattr(self, "_gf_excl_polys", [])):
         if not isinstance(entry, dict):
-            continue  # Ignora formatos antiguos/corruptos
+            continue
 
         poly = entry.get("poly", [])
         zmin = entry.get("zmin")
@@ -308,7 +300,7 @@ def _inside_any_exclusion(self, x, y, z):
                 print(f"[geofence]  VIOLACIÓN POLY @ ({x:.1f},{y:.1f},{z:.1f})")
                 return True
 
-    # Círculos: deben ser dicts {cx, cy, r, zmin, zmax}
+
     for entry in list(getattr(self, "_gf_excl_circles", [])):
         if not isinstance(entry, dict):
             continue  # Ignora formatos antiguos/corruptos
@@ -330,15 +322,15 @@ def _inside_any_exclusion(self, x, y, z):
 
 
 def _handle_violation(self):
-    """Maneja una violación del geofence."""
+
     mode = getattr(self, "_gf_mode", _MODE_SOFT_ABORT)
 
-    # Evita reentradas
+
     if getattr(self, "_gf_last_report", None) != mode:
         print(f"[geofence]  Violación detectada (modo={mode}).")
         self._gf_last_report = mode
 
-    # Señales de abortar tareas de alto nivel
+
     setattr(self, "_goto_abort", True)
     setattr(self, "_mission_abort", True)
 

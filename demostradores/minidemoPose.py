@@ -33,7 +33,7 @@ DEFAULT_SPEED = 20  # cm/s
 class MiniRemoteApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Demo Tello Pose + Mission Pads")
+        self.root.title("Demo Tello Pose")
         self.root.geometry("520x540")
         self.root.resizable(True, True)
 
@@ -60,9 +60,6 @@ class MiniRemoteApp:
         self.z_var = tk.StringVar(value="Z: —")
         self.yaw_var = tk.StringVar(value="Yaw: —")
 
-        # --- MISSION PADS: variable para mostrar estado ---
-        self.pad_var = tk.StringVar(value="Mission Pad: —")
-
         self._build_ui()
         self._bind_keys()
 
@@ -85,12 +82,6 @@ class MiniRemoteApp:
 
         tk.Label(top, text="WiFi:").grid(row=0, column=6, sticky="e")
         tk.Label(top, textvariable=self.wifi_var, width=6).grid(row=0, column=7, sticky="w")
-
-        # --- MISSION PADS: panel informativo (NUEVO) ---
-        pad_panel = tk.Frame(self.root, bd=1, relief="groove")
-        pad_panel.pack(fill="x", **pad)
-        tk.Label(pad_panel, textvariable=self.pad_var, anchor="w", fg="#0066cc", font=("Arial", 9, "bold")).pack(
-            side="left", padx=10)
 
         # Conexión
         conn = tk.Frame(self.root, bd=1, relief="groove")
@@ -202,12 +193,6 @@ class MiniRemoteApp:
                 self.dron.stopTelemetry()
             except Exception:
                 pass
-            # Desactivar mission pads si estaban activos
-            try:
-                if getattr(self.dron, "_mission_pads_enabled", False):
-                    self.dron.disable_mission_pads()
-            except Exception:
-                pass
             self.dron.disconnect()
         except Exception as e:
             messagebox.showwarning("Desconectar", f"Aviso: {e}")
@@ -221,8 +206,6 @@ class MiniRemoteApp:
             self.y_var.set("Y: —")
             self.z_var.set("Z: —")
             self.yaw_var.set("Yaw: —")
-            # MISSION PADS: limpiar panel
-            self.pad_var.set("Mission Pad: —")
 
     def on_takeoff(self):
         if self.dron.state not in ("connected", "flying"):
@@ -241,39 +224,6 @@ class MiniRemoteApp:
             else:
                 # POSE: al despegar, si no existía, crea y resetea origen
                 self._ensure_pose_origin()
-
-                # --- MISSION PADS: Activar automáticamente tras despegar ---
-                try:
-                    self.dron.enable_mission_pads()
-                    time.sleep(1.5)  # dar tiempo a la detección
-
-                    # Verificar si se detectó un mission pad
-                    if self.dron.is_mission_pad_detected():
-                        pos = self.dron.get_mission_pad_position()
-                        if pos:
-                            self.pad_var.set(
-                                f"Mission Pad: ✓ Pad {pos['id']} - Tracking REAL (x={pos['x']}, y={pos['y']}, z={pos['z']})")
-                            messagebox.showinfo(
-                                "Mission Pads",
-                                f"Mission Pad detectado!\n\n"
-                                f"ID: {pos['id']}\n"
-                                f"Posición inicial: x={pos['x']}, y={pos['y']}, z={pos['z']} cm\n\n"
-                                f"Las coordenadas se actualizarán en tiempo real  "
-                            )
-                    else:
-                        self.pad_var.set("Mission Pad:  No detectado - Usando dead reckoning")
-                        messagebox.showwarning(
-                            "Mission Pads",
-                            "No se detectó mission pad.\n\n"
-                            "El dron usará dead reckoning (menos preciso).\n\n"
-                            "Para mejores resultados:\n"
-                            "- Despega desde un mission pad\n"
-                            "- Mantén el dron a 0.5-3m de altura\n"
-                            "- Asegúrate de tener Tello EDU comàtible"
-                        )
-                except Exception as e:
-                    self.pad_var.set(f"Mission Pad: ✗ Error - {e}")
-                    print(f"[Mission Pads] Error al activar: {e}")
         except Exception as e:
             messagebox.showerror("TakeOff", str(e))
         finally:
@@ -311,7 +261,6 @@ class MiniRemoteApp:
             step = max(20, min(500, step))  # límites SDK
             self._pause_keepalive()
             getattr(self.dron, cmd)(step)  # forward/back/left/right/up/down
-            # POSE: los módulos ya no usan dead reckoning si mission pads están activos
         except Exception as e:
             messagebox.showerror("Movimiento", str(e))
         finally:
@@ -353,11 +302,6 @@ class MiniRemoteApp:
                 pass
             try:
                 self._stop_keepalive()
-            except Exception:
-                pass
-            try:
-                if getattr(self.dron, "_mission_pads_enabled", False):
-                    self.dron.disable_mission_pads()
             except Exception:
                 pass
             if getattr(self.dron, "state", "") == "connected":
@@ -411,19 +355,6 @@ class MiniRemoteApp:
                 self.y_var.set("Y: —")
                 self.z_var.set("Z: —")
                 self.yaw_var.set("Yaw: —")
-
-            # --- MISSION PADS: actualizar estado en tiempo real ---
-            try:
-                if getattr(self.dron, "_mission_pads_enabled", False):
-                    if self.dron.is_mission_pad_detected():
-                        pos = self.dron.get_mission_pad_position()
-                        if pos:
-                            self.pad_var.set(
-                                f"Mission Pad: ✓ Pad {pos['id']} - Tracking REAL (x={pos['x']}, y={pos['y']}, z={pos['z']})")
-                    else:
-                        self.pad_var.set("Mission Pad: ⚠ Señal perdida")
-            except Exception:
-                pass
 
         except Exception:
             pass

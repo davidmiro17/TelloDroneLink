@@ -186,7 +186,7 @@ def _goto_rel_worker(self,
             try: callback()
             except Exception: pass
 
-#Función pública
+#Funcion pública
 def goto_rel(self,
              dx_cm: float, dy_cm: float, dz_cm: float = 0.0,
              yaw_deg: Optional[float] = None,

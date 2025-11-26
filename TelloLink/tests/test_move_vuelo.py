@@ -52,7 +52,7 @@ def main():
         dron._move("left",    STEP);  time.sleep(COOLDOWN)
         dron._move("right",   STEP);  time.sleep(COOLDOWN)
 
-        #Demostración vertical segura: subir/bajar 20 cm respetando techo
+
         print("\n--> Subir/bajar 20 cm (respetando techo)")
         dron.up(STEP);    time.sleep(COOLDOWN)
         dron.down(STEP);  time.sleep(COOLDOWN)

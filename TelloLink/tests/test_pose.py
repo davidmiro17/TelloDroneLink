@@ -62,7 +62,7 @@ def main():
     pose.update_yaw(-600)
     print(f"Yaw tras -600° -> {pose.yaw_deg:.1f}°")
 
-    print("\n✅ Test del módulo tello_pose completado correctamente.")
+    print("\nTest del módulo tello_pose completado correctamente.")
 
 if __name__ == "__main__":
     main()

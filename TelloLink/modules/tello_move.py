@@ -1,6 +1,6 @@
 import time
 
-#Valores nmáximos y mínimos del SDK de Tello
+#Valores máximos y mínimos del SDK de Tello
 MIN_STEP = 20       # cm (límite inferior de movimiento del Tello)
 MAX_STEP = 500      # cm (límite superior de movimiento del Tello)
 MIN_SPEED = 10      # cm/s

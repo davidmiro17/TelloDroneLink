@@ -50,7 +50,7 @@ def rotate(self, deg):
     return True
 
 
-def cw(self, deg):    #Estas dos funciones son útiles para los tests, pues en vez de darles el angulo en negativo, le damos el angulo deseado y si lo queremos en horario o antihorario
+def cw(self, deg):    #Estas dos funciones son útiles para los tests,  en vez de darles el angulo en negativo, le damos el angulo deseado y si lo queremos en horario o antihorario
     return rotate(self, abs(deg))
 
 def ccw(self, deg):

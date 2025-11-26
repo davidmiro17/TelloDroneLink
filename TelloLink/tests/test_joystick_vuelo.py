@@ -5,7 +5,7 @@ from TelloLink import TelloDron, JoystickController
 
 def main():
     print("=" * 80)
-    print("VUELO MANUAL CON JOYSTICK")
+    print("VUELO MANUAL DEL DRON CON JOYSTICK")
     print("=" * 80)
     print()
 
