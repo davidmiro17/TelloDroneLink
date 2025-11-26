@@ -1,4 +1,4 @@
-import math
+import  math
 from dataclasses import dataclass
 
 
@@ -37,21 +37,7 @@ class PoseVirtual:
             "yaw_deg": round(self.yaw_deg, 1),
         }
 
-    # Llama cuando completa el despegue para fijar la referencia  del vuelo
-    # Deja X=Y=0 en el punto de despegue, Z=altura actual y yaw relativo = 0
-    def set_takeoff_reference(self, height_cm: float | None = None,
-                              yaw_deg: float | None = None) -> None:
-        try:
-            self.x_cm = 0.0
-            self.y_cm = 0.0
-            self.z_cm = float(height_cm) if height_cm is not None else 0.0
-        except Exception:
-            self.z_cm = 0.0
 
-        if yaw_deg is not None:
-            self.yaw0_deg = _wrap_deg(float(yaw_deg))
-
-        self.yaw_deg = 0.0
 
     def set_from_telemetry(self, height_cm: float | None = None,
                            yaw_deg: float | None = None) -> None:
@@ -91,12 +77,6 @@ class PoseVirtual:
         elif direction == "down":
             self.z_cm -= d
 
-    def set_from_mission_pad(self, x_cm, y_cm, z_cm):
-
-        self.x_cm = float(x_cm)
-        self.y_cm = float(y_cm)
-        self.z_cm = float(z_cm)
-
     # Distancia entre una pose y otra
     def distance_to(self, other: "PoseVirtual") -> float:
         dx = self.x_cm - other.x_cm
@@ -124,12 +104,14 @@ class PoseVirtual:
         return (f"PoseVirtual(x={self.x_cm:.1f}, y={self.y_cm:.1f}, "
                 f"z={self.z_cm:.1f}, yaw={self.yaw_deg:.1f})")
 
+
+#A partir de usar el joystick (modo rc), la pose se calcula de esta manera, a partir de las velocidades
     def update_from_rc(self, vx_pct, vy_pct, vz_pct, yaw_pct, dt_sec=0.1):
 
         import math
 
         # Velocidad máxima del Tello (aproximada)
-        MAX_SPEED_CM_S = 100  # cm/s (ajustable según tu dron)
+        MAX_SPEED_CM_S = 200  # cm/s (ajustable según tu dron)
         MAX_YAW_DEG_S = 100  # grados/s
 
         # Convertir porcentajes a velocidades reales
@@ -149,7 +131,7 @@ class PoseVirtual:
         cos_theta = math.cos(theta)
         sin_theta = math.sin(theta)
 
-        # Rotación del movimiento al sistema global
+        # Rotación del movimiento al sistema global. Transformamos "adelante/atrás/derecha/izquierda" del dron a "X/Y" del mapa
         dx_global = dx_local * cos_theta - dy_local * sin_theta
         dy_global = dx_local * sin_theta + dy_local * cos_theta
 

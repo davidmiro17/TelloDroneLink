@@ -4,7 +4,7 @@ from TelloLink.Tello import TelloDron
 def main():
     print("Vamos a probar la conexión con el Tello...")
 
-    # Creamos el objeto
+    # Creamos el objeto dron
     dron = TelloDron()
 
     # Intentamos conectar

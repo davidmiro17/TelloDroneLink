@@ -3,7 +3,7 @@ import time
 
 
 def main():
-    print("=== Test de despegue y aterrizaje con telemetría ===\n")
+    print("Test de despegue y aterrizaje con telemetría \n")
 
     dron = TelloDron()
 
@@ -32,14 +32,14 @@ def main():
         if not ok:
             print(" Error: No se pudo despegar")
             return
-        print(" Despegue exitoso\n")
+        print(" Despegue completado\n")
 
         # Lecturas de altura durante 5 segundos
         print("--> Lecturas de telemetría en vuelo (5 s):")
-        altura_esperada = 120  # 1.2 m = 120 cm
+        altura_esperada = 120  #1.2 m
 
         for i in range(10):
-            # Leer datos de telemetría (atributos públicos)
+            # Leer datos de telemetría
             h = dron.height_cm
             bat = dron.battery_pct if dron.battery_pct else "N/A"
             temp = dron.temp_c if dron.temp_c else "N/A"
@@ -50,9 +50,9 @@ def main():
 
             # Validar si está dentro de tolerancia (±20 cm)
             if diff < 20:
-                status = ""
+                status = "[OK]"
             else:
-                status = "️"
+                status = "[NOT OK]"
 
             print(
                 f"[{i + 1}/10] Altura: {h} cm {status} | Bat: {bat}% | Temp: {temp}°C | WiFi: {wifi} | Diff: {diff} cm")
@@ -99,7 +99,7 @@ def main():
             print(f" Error en aterrizaje de emergencia: {e2}")
 
     finally:
-        # Cleanup: detener telemetría y desconectar
+
         try:
             print("\n--> Deteniendo telemetría...")
             dron.stopTelemetry()
@@ -111,7 +111,7 @@ def main():
             dron.disconnect()
             print(" Desconectado")
         except Exception as e:
-            print(f"⚠ Error al desconectar: {e}")
+            print(f" Error al desconectar: {e}")
 
     print("\n=== Test completado ===")
 

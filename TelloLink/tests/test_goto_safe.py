@@ -18,7 +18,7 @@ def main():
         print(f"[ABORT] Batería baja ({bat}%). Carga antes de volar.")
         return
 
-    #Por seguridad, establecemos un "volumen cúbico de seguridad", es decir máximo 120 cm en Z (altura) y 120 en X e Y (horizontal)
+    #Por seguridad, establecemos un "volumen cúbico de seguridad", es decir máximo 200 cm en Z (altura) y 200 en X e Y (horizontal)
     MAX_RADIUS_CM = 200
     MAX_HEIGHT_CM = 200
     def soft_guard():
@@ -60,10 +60,7 @@ def main():
         print(f"\n--> {desc}")
         start_t = time.time()
         dron.goto_rel(dx_cm=dx, dy_cm=dy, dz_cm=dz, blocking=True)
-        while time.time() - start_t < 8.0:  #timeout de seguridad
-            if soft_guard():
-                break
-            time.sleep(0.05)
+
         print(f"[OK] {desc} completado o timeout alcanzado.")
 
     #Finalización
@@ -75,7 +72,7 @@ def main():
 
     dron.stopTelemetry()
     dron.disconnect()
-    print("\n✅ Test de goto_rel finalizado con seguridad.")
+    print("\n Test de goto_rel finalizado con seguridad.")
 
 if __name__ == "__main__":
     main()

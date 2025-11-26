@@ -32,7 +32,7 @@ def main():
         time.sleep(1.0)
 
     finally:
-        if took_off:  #Si se ha llegado a despegar, ahora va a aterrizar
+        if took_off:  #Si  ha llegado a despegar, ahora va a aterrizar
             print("\n--> Aterrizando...")
             try:
                 dron.Land(blocking=True)

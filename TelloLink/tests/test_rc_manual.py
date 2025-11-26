@@ -35,7 +35,7 @@ def main():
         time.sleep(1)
 
 
-        print("--> Test 1: Adelante suave (15%) durante 2s")
+        print("--> Test 1: Adelante suave (30%) durante 2s")
         for i in range(20):  # 20 * 0.1s = 2s
             dron.rc(0, 30, 0, 0)
             time.sleep(0.1)
@@ -46,7 +46,7 @@ def main():
         time.sleep(1)
 
 
-        print("--> Test 2: Atrás suave (15%) durante 2s")
+        print("--> Test 2: Atrás suave (30%) durante 2s")
         for i in range(20):
             dron.rc(0, -30, 0, 0)
             time.sleep(0.1)
@@ -57,7 +57,7 @@ def main():
         time.sleep(1)
 
         # TEST 3: Izquierda
-        print("--> Test 3: Izquierda (15%) durante 1.5s")
+        print("--> Test 3: Izquierda (30%) durante 1.5s")
         for i in range(30):
             dron.rc(-30, 0, 0, 0)
             time.sleep(0.1)
@@ -67,8 +67,8 @@ def main():
         dron.rc(0, 0, 0, 0)
         time.sleep(1)
 
-        # TEST 4: Derecha (volver)
-        print("--> Test 4: Derecha (15%) durante 1.5s")
+        # Derecha (volver)
+        print("--> Test 4: Derecha (30%) durante 1.5s")
         for i in range(30):
             dron.rc(30, 0, 0, 0)
             time.sleep(0.1)
@@ -78,8 +78,8 @@ def main():
         dron.rc(0, 0, 0, 0)
         time.sleep(1)
 
-        # TEST 5: Rotación horaria
-        print("--> Test 5: Rotación horaria (15%) durante 2s")
+        # Rotación horaria
+        print("--> Test 5: Rotación horaria (30%) durante 2s")
         for i in range(20):
             dron.rc(0, 0, 0, 30)
             time.sleep(0.1)
@@ -89,8 +89,8 @@ def main():
         dron.rc(0, 0, 0, 0)
         time.sleep(1)
 
-        # TEST 6: Rotación antihoraria (volver)
-        print("--> Test 6: Rotación antihoraria (15%) durante 2s")
+        #  Rotación antihoraria (volver)
+        print("--> Test 6: Rotación antihoraria (30%) durante 2s")
         for i in range(20):
             dron.rc(0, 0, 0, -30)
             time.sleep(0.1)

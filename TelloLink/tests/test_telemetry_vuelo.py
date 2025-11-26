@@ -2,7 +2,7 @@ from TelloLink.Tello import TelloDron
 import time
 
 def main():
-    print("=== Test de telemetría con vuelo corto y seguro (indoor) ===")
+    print(" Test de telemetría con vuelo corto y seguro (indoor) ")
     dron = TelloDron()
     dron.connect()
     time.sleep(1.5)  # pequeña pausa
@@ -19,14 +19,14 @@ def main():
     pose_str = str(dron.pose) if hasattr(dron, "pose") and dron.pose is not None else "N/A"
     print(f"Inicial -> Altura={dron.height_cm} cm | Battery={bat}% | Temp={temp}°C | Wifi={wifi} | FlightTime={dron.flight_time_s}s | Yaw={yaw}° | Pose={pose_str}")
 
-    # Safety: batería mínima (20%)
+    #Batería mínima (20%)
     if isinstance(dron.battery_pct, int) and dron.battery_pct < 20:
         print("Batería baja (<20%). Abortando prueba por seguridad.")
         dron.stopTelemetry()
         dron.disconnect()
         return
 
-    target_m = 1.0  # objetivo conservador (tu takeOff ya limita internamente)
+    target_m = 1.0
     print(f"\n--> Despegando a {target_m} m (indoor, seguro)")
     took_off = False
 

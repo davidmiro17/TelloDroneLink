@@ -9,7 +9,7 @@ from djitellopy import Tello
 URL = "udp://0.0.0.0:11111?listen=1&fifo_size=50000000&overrun_nonfatal=1"
 
 def main():
-    print("=== Test de cámara SOLO OpenCV (sin PyAV) ===")
+    print(" Test de cámara")
 
     tello = Tello()
     tello.connect()

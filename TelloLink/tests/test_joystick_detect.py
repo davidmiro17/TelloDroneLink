@@ -5,7 +5,7 @@ import sys
 def main():
     print("=== Detección de Joystick ===\n")
 
-    # Inicializar pygame
+    # Inicializar modulo pygame
     pygame.init()
     pygame.joystick.init()
 

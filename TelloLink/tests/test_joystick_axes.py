@@ -6,7 +6,7 @@ import time
 def main():
     print("Ejes del Joystick\n")
 
-    # Inicializar pygame
+    # Inicializar modulo pygame
     pygame.init()
     pygame.joystick.init()
 

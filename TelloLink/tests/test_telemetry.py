@@ -2,7 +2,7 @@ from TelloLink.Tello import TelloDron
 import time
 
 def main():
-    print("=== Test de telemetría (básico, sin vuelo) ===")
+    print(" Test de telemetría (básico, sin vuelo) ")
     dron = TelloDron()
     dron.connect()
 

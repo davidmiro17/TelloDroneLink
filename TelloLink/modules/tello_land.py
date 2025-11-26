@@ -1,21 +1,9 @@
-# TelloLink/modules/tello_land.py
-# Estilo robusto “por pasos”, análogo a tello_takeOff_robusto:
-# - Evita dobles aterrizajes con un flag interno.
-# - No manda 'land' si ya estás en el suelo (≤20 cm) o no estás en vuelo.
-# - Acepta respuestas no-estándar del SDK (no aborta por '44', etc.).
-# - Espera a que realmente baje (por altura), con timeout razonable.
-# - Normaliza self.state al finalizar.
-
 import threading
 import time
 
-
+#Función en la que intentamos leer la altura del backend del Tello, y si falla usamos el valor guardado en self.height_cm
 def _read_height_cm_runtime(self) -> float:
-    """
-    Lectura robusta de altura para aterrizaje:
-    1) Intenta SDK (get_height).
-    2) Si falla, cae a self.height_cm.
-    """
+
     try:
         if hasattr(self, "_tello") and self._tello:
             h = self._tello.get_height()
@@ -29,24 +17,24 @@ def _read_height_cm_runtime(self) -> float:
         return 0.0
 
 
-# --- API público: Land ---
+#Función pública del aterrizaje
 def Land(self, blocking=True, callback=None, params=None):
 
-    # 0) Antirreentradas: evita lanzar 2 lands a la vez
+    #Evitamos lanzar 2 lands a la vez
     if getattr(self, "_landing_in_progress", False):
         print("[land] Ya hay un aterrizaje en curso; ignoro la petición duplicada.")
         return True
 
     setattr(self, "_landing_in_progress", True)
 
-    # 1) Comprobaciones rápidas de estado
+    #Comprobaciones rápidas del estado
     st = getattr(self, "state", "")
     if st != "flying":
-        # Igual que en takeOff robusto: no fuerces comandos si el estado no aplica.
-        print("[land] Estado actual no es 'flying'; no mando 'land'. Normalizo a 'connected'.")
+
+        print("[land] Estado actual no es 'flying'; no mando 'land'. Normalizo el estado a 'connected'.")
         try:
             self.state = "connected"
-            # Por estética de la UI, fija z=0 si tienes pose
+
             if hasattr(self, "pose") and self.pose:
                 try:
                     self.pose.z_cm = 0.0
@@ -73,17 +61,17 @@ def Land(self, blocking=True, callback=None, params=None):
         return True
 
 
-# --- Implementación real del aterrizaje ---
+#Función que contiene toda la lógica del aterrizaje completo
 def _land(self, callback=None, params=None):
 
     try:
-        # Paso 1) Estado intermedio
+        #Estado intermedio
         try:
             self.state = "landing"
         except Exception:
             pass
 
-        # Paso 2) Si ya está a ras de suelo, no fuerces 'land'
+        #Si ya está a ras de suelo, no se pone como 'land'
         h0 = _read_height_cm_runtime(self)
         if h0 <= 20.0:
             print("[land] Altura inicial ≤ 20 cm. Ya está en el suelo; no mando 'land'.")
@@ -91,16 +79,16 @@ def _land(self, callback=None, params=None):
             _do_callback(callback, params)
             return
 
-        # Paso 3) Enviar 'land' (sin tratar respuesta rara como error duro)
+        # Enviar 'land'
         try:
             resp = self._send("land")
-            print(f"[land] Respuesta SDK: {resp!r}")   # puede ser 'ok', 'error ...', '44', etc.
+            print(f"[land] Respuesta SDK: {resp!r}")
         except Exception as e:
-            # No abortamos; pasamos a monitorizar altura como en takeOff robusto
+
             print(f"[land] Aviso al enviar 'land': {e}")
 
-        # Paso 4) Espera a que realmente baje (por altura) con timeout
-        TIMEOUT_S = 15.0      # ventana cómoda para que baje
+        # Esperamos a que realmente baje (por altura) con timeout
+        TIMEOUT_S = 15.0      # ventana  para que baje
         LOW_CM    = 15.0      # umbral “en suelo”
         t0 = time.time()
         while time.time() - t0 < TIMEOUT_S:
@@ -109,25 +97,25 @@ def _land(self, callback=None, params=None):
                 break
             time.sleep(0.2)
 
-        # Paso 5) Normaliza estado final y limpieza
+        #Normalizamos el estado al final
         _normalize_after_land(self)
         print("[land] Completado.")
 
-        # Callback
+
         _do_callback(callback, params)
 
     finally:
-        # Limpia flag de antirreentradas pase lo que pase
+
         try:
             setattr(self, "_landing_in_progress", False)
         except Exception:
             pass
 
 
-# ----- Helpers internos -----
 
+#Función para limpiar el estado despues de aterrizar
 def _normalize_after_land(self):
-    """Deja el estado en 'connected' y, si existe pose, Z=0."""
+
     try:
         self.state = "connected"
     except Exception:
@@ -140,7 +128,7 @@ def _normalize_after_land(self):
 
 
 def _do_callback(cb, params):
-    """Llama al callback si existe, tolerando firmas con/sin parámetro."""
+
     if not cb:
         return
     try:

@@ -1,7 +1,7 @@
 import threading
 import time
 
-# Intentamos importar la PoseVirtual (opcional: si no existe no se rompe)
+# Intentamos importar la PoseVirtual
 try:
     from TelloLink.modules.tello_pose import PoseVirtual
 except Exception:
@@ -19,7 +19,7 @@ def _telemetry_loop(self, period_s: float):
             time.sleep(period_s)
             continue
 
-        # Valores locales para sincronización de pose
+        # Valores locales para sincronización de la pose
         height_val = None
         yaw_val = None
 
@@ -45,7 +45,7 @@ def _telemetry_loop(self, period_s: float):
                 if callable(gc):
                     try:
                         st = gc()
-                        # djitellopy suele mostrar 'yaw' en grados
+
                         if isinstance(st, dict):
                             y = st.get("yaw", None)
                     except Exception:
@@ -89,30 +89,18 @@ def _telemetry_loop(self, period_s: float):
         except Exception:
             pass
 
+        # Velocidades (cm/s)
+
         try:
-            if getattr(self, "_mission_pads_enabled", False):
-                # Intenta leer posición del pad
-                mid_x = None
-                mid_y = None
-                mid_z = None
-
-                if hasattr(self._tello, "get_mission_pad_distance_x"):
-                    try:
-                        mid_x = self._tello.get_mission_pad_distance_x()
-                        mid_y = self._tello.get_mission_pad_distance_y()
-                        mid_z = self._tello.get_mission_pad_distance_z()
-                    except Exception:
-                        pass
-
-                # Si tenemos datos válidos del pad, actualizar pose real
-                if mid_x is not None and mid_y is not None and mid_z is not None:
-                    if mid_x >= 0 and mid_y >= 0 and mid_z >= 0:  # valores válidos
-                        if hasattr(self, "pose") and self.pose is not None:
-                            self.pose.set_from_mission_pad(mid_x, mid_y, mid_z)
-                            # Saltamos la sincronización tradicional
-                            self.telemetry_ts = time.time()
-                            time.sleep(period_s)
-                            continue
+            vx = self._tello.get_speed_x()
+            vy = self._tello.get_speed_y()
+            vz = self._tello.get_speed_z()
+            if vx is not None:
+                self.vx_cm_s = int(-vx)
+            if vy is not None:
+                self.vy_cm_s = int(-vy)
+            if vz is not None:
+                self.vz_cm_s = int(vz)
         except Exception:
             pass
 
@@ -166,6 +154,10 @@ def startTelemetry(self, freq_hz: int = 5):
     self.temp_c = getattr(self, "temp_c", None)
     self.wifi = getattr(self, "wifi", None)
     self.flight_time_s = getattr(self, "flight_time_s", 0)
+    self.vx_cm_s = getattr(self, "vx_cm_s", 0)
+    self.vy_cm_s = getattr(self, "vy_cm_s", 0)
+    self.vz_cm_s = getattr(self, "vz_cm_s", 0)
+    self._last_pose_update_ts = time.time()
     self.telemetry_ts = time.time()
 
     # Creamos aquí la pose

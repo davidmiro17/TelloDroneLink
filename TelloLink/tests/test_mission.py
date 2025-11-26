@@ -2,13 +2,13 @@ import time
 import threading
 from TelloLink.Tello import TelloDron
 
-# ===== Parámetros de seguridad (ajusta si tu espacio es más pequeño) =====
+
 MIN_BAT_PCT   = 30          # aborta si batería < 30%
 MAX_RADIUS_CM = 120         # |x| y |y| no deben superar 1.2 m desde el origen
 MAX_HEIGHT_CM = 120         # z no debe superar 1.2 m
 
 def main():
-    print("=== Tello Mission Test (indoor seguro) ===")
+    print(" Tello Mission Test ")
     dron = TelloDron()
     try:
         print("[INFO] Conectando...")
@@ -39,7 +39,7 @@ def main():
                 pass
             return False
 
-        # Waypoints RELATIVOS (pequeños). Todos incluyen delay corto para estabilizar.
+        # Waypoints RELATIVOS (pequeños).
         waypoints = [
             {"dx": 20, "dy":  0, "dz":  0, "delay": 0.5},  # adelante 20 cm
             {"dx":  0, "dy": 20, "dz":  0, "delay": 0.5},  # derecha  20 cm
@@ -59,16 +59,16 @@ def main():
             finished.set()
 
         print("[INFO] Lanzando misión…")
-        # Ejecuta la misión NO bloqueante para poder vigilar soft_box en paralelo
+        # Ejecuta la misión NO bloqueante
         dron.run_mission(
             waypoints=waypoints,
             do_land=True,         # aterriza al terminar
-            blocking=False,       # no bloqueante → podemos vigilar y abortar
+            blocking=False,       # no bloqueante
             on_wp=on_wp,
             on_finish=on_finish
         )
 
-        # Bucle de vigilancia simple (soft-box + timeout duro)
+
         t0 = time.time()
         HARD_TIMEOUT_S = 60
         while not finished.is_set():
@@ -80,7 +80,7 @@ def main():
                 break
             time.sleep(0.05)
 
-        # Espera breve a que on_finish dispare (o a que aterrice si do_land=True)
+
         finished.wait(timeout=10.0)
 
     except Exception as e:

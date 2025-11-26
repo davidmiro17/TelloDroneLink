@@ -27,7 +27,6 @@ class TelloDron(object):
         self._mission_abort = False
         self._gf_enabled = False
         self._gf_monitoring = False
-        self._mission_pads_enabled = False
 
         self._landing_in_progress = False
         self._takeoff_in_progress = False
@@ -36,7 +35,7 @@ class TelloDron(object):
     # --- Métodos "colgados" desde los módulos ---
     from TelloLink.modules.tello_camera import stream_on, stream_off, get_frame, snapshot
     from TelloLink.modules.tello_connect import connect, _connect, disconnect, _send, _require_connected
-    from TelloLink.modules.tello_takeOff import takeOff, _takeOff, _checkAltitudeReached, _ascend_to_target
+    from TelloLink.modules.tello_takeOff import takeOff, _takeOff, _ascend_to_target
     from TelloLink.modules.tello_land import Land, _land
     from TelloLink.modules.tello_telemetry import startTelemetry, stopTelemetry
     from TelloLink.modules.tello_move import _move, up, down, set_speed, forward, back, left, right, rc
@@ -46,4 +45,3 @@ class TelloDron(object):
     from TelloLink.modules.tello_goto import goto_rel, abort_goto
     from TelloLink.modules.tello_mission import run_mission, abort_mission
     from TelloLink.modules.tello_geofence import set_geofence, disable_geofence, recenter_geofence, add_exclusion_poly, add_exclusion_circle, clear_exclusions
-    from TelloLink.modules.tello_mission_pads import enable_mission_pads, disable_mission_pads, get_mission_pad_id, get_mission_pad_distance_x, get_mission_pad_distance_y, get_mission_pad_distance_z, is_mission_pad_detected, get_mission_pad_position

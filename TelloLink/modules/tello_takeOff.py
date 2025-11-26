@@ -1,9 +1,10 @@
 
 import time
 
-_MIN_BAT_PCT = 10  # seguridad mínima por si se usa sin comprobaciones externas
+_MIN_BAT_PCT = 10
 
 
+#Función en la que intentamos leer la altura del backend del Tello, y si falla usamos el valor guardado en self.height_cm
 def _read_height_cm_runtime(self) -> int:
 
     try:
@@ -19,25 +20,15 @@ def _read_height_cm_runtime(self) -> int:
         return 0
 
 
-def _checkAltitudeReached(self, target_h_cm, timeout_s=5.0):
-
-    t0 = time.time()
-    while time.time() - t0 < timeout_s:
-        h = _read_height_cm_runtime(self)
-        if h >= target_h_cm * 0.9:  # margen del 10% (tolerancia)
-            return True
-        time.sleep(0.2)
-    return False
-
-
+#Función para subir los centímetros restantes en el despegue
 def _ascend_to_target(self, target_h_cm):
-    """Sube hasta la altura objetivo en un solo empujón seguro."""
+
     try:
         self._send(f"up {int(target_h_cm)}")
     except Exception as e:
         print(f"[WARN] Subida adicional falló: {e}")
 
-
+#Función que contiene toda la lógica del despegue completo
 def _takeOff(self, altura_objetivo_m=0.5, blocking=True):
 
     try:
@@ -53,7 +44,7 @@ def _takeOff(self, altura_objetivo_m=0.5, blocking=True):
         resp = self._send("takeoff")
         print(f"[INFO] tello_takeOff -> respuesta inicial: {resp}")
 
-        # --- Espera a que suba al menos a ~20 cm ---
+        #Espera a que suba al menos a ~20 cm ---
         t0 = time.time()
         ok_alt = False
         h = 0
@@ -64,7 +55,7 @@ def _takeOff(self, altura_objetivo_m=0.5, blocking=True):
                 break
             time.sleep(0.2)
 
-        # Empujón de rescate si no llegó
+        # Empujón extra de subida si no llegó, por si las condiciones del suelo son malas para el despegue
         if not ok_alt:
             print("[WARN] Altura <20 cm tras 5s, aplico empujón 'up 20'")
             try:
@@ -80,16 +71,16 @@ def _takeOff(self, altura_objetivo_m=0.5, blocking=True):
             print("[ERROR] No se confirmó despegue (altura <20 cm tras reintento).")
             return False
 
-        # Confirmado: ya está en el aire
+        # Confirmamos que ya está en el aire
         print(f"Altura inicial confirmada: {h} cm (ok).")
         self.state = "flying"
 
-        # --- RESET DE POSE EN CADA DESPEGUE ---
+        #Reseteamos la pose
         try:
             pose = getattr(self, "pose", None)
             if pose is not None:
-                pose.reset()          # x=0,y=0,z=0,yaw=0
-                pose.z_cm = float(h)  # ancla Z a la altura barométrica actual
+                pose.reset()
+                pose.z_cm = float(h)  # Establecemos Z a la altura barométrica actual
                 pose.yaw_deg = 0.0    # el rumbo actual pasa a ser 0° relativo
         except Exception:
             pass
@@ -100,7 +91,7 @@ def _takeOff(self, altura_objetivo_m=0.5, blocking=True):
             _ascend_to_target(self, target_h_cm - h)
             print(f"Altura objetivo alcanzada (~{target_h_cm} cm).")
 
-        # --- COOLDOWN FINAL PARA EVITAR FALLO DEL PRIMER COMANDO ---
+        #Pausa al final
         try:
             self._after_takeoff_ts = time.time()
         except Exception:
@@ -114,11 +105,9 @@ def _takeOff(self, altura_objetivo_m=0.5, blocking=True):
         print(f"[ERROR] takeOff -> {e}")
         return False
 
-
+#Función pública del despegue
 def takeOff(self, altura_objetivo_m=0.5, blocking=True):
-    """Wrapper público para el hilo de despegue."""
 
-    # ✅ AÑADIR AL INICIO:
     if getattr(self, "_takeoff_in_progress", False):
         print("[takeOff] Ya hay un despegue en curso; ignoro la petición duplicada.")
         return True
